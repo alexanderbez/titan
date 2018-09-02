@@ -88,6 +88,13 @@ func executeRootCmd(cmd *cobra.Command, args []string) error {
 
 	// TODO: Database and RPC
 
+	baseLogger, err := createBaseLogger()
+	if err != nil {
+		return err
+	}
+
+	senders := createSenders(cfg, baseLogger)
+
 	return nil
 }
 
