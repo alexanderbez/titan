@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/alexanderbez/titan/alerts"
+
 	"github.com/alexanderbez/titan/config"
+	"github.com/alexanderbez/titan/core"
 	"github.com/alexanderbez/titan/version"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -13,6 +16,8 @@ import (
 
 const (
 	flagConfig = "config"
+	flagDebug  = "debug"
+	flagLogOut = "output"
 )
 
 // command flags
@@ -35,7 +40,14 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.Flags().StringVar(&configFile, flagConfig, "", "The daemon configuration file")
-	// TODO: Define additional flags
+	rootCmd.Flags().String(flagLogOut, "", "The logging output file (default: STDOUT)")
+	rootCmd.Flags().Bool(flagDebug, false, "Enable debug logging")
+
+	viper.BindPFlag(flagDebug, rootCmd.Flags().Lookup(flagDebug))
+	viper.BindPFlag(flagLogOut, rootCmd.Flags().Lookup(flagLogOut))
+
+	// do not allow Cobra to automatically sort flags
+	rootCmd.Flags().SortFlags = false
 
 	rootCmd.AddCommand(version.VersionCmd)
 }
@@ -60,6 +72,7 @@ func initConfig() {
 // executeRootCmd implements the root command handler. It returns an error if
 // the command failed to execute correctly.
 func executeRootCmd(cmd *cobra.Command, args []string) error {
+	fmt.Println("debug:", viper.GetBool("debug"))
 	if err := viper.ReadInConfig(); err != nil {
 		return err
 	}
@@ -73,9 +86,34 @@ func executeRootCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// TODO: Database, RPC and logging
+	// TODO: Database and RPC
 
 	return nil
+}
+
+func createBaseLogger() (core.Logger, error) {
+	logFile := os.Stdout
+
+	if logOut := viper.GetString(flagLogOut); logOut != "" {
+		file, err := os.OpenFile(logOut, os.O_CREATE|os.O_WRONLY, 0666)
+		if err != nil {
+			return core.Logger{}, err
+		}
+
+		logFile = file
+	}
+
+	return core.NewLogger(logFile, viper.GetBool(flagDebug)), nil
+}
+
+func createSenders(cfg config.Config, logger core.Logger) []alerts.Sender {
+	return []alerts.Sender{
+		alerts.NewSendGridSender(
+			logger.With("module", "SendGrid"),
+			cfg.Integrations.SendGrid.Key,
+			cfg.Integrations.SendGrid.FromName,
+		),
+	}
 }
 
 // Execute executes the application root command. If any error is returned, it

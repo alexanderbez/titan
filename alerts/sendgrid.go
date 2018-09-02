@@ -3,6 +3,7 @@ package alerts
 import (
 	"fmt"
 
+	"github.com/alexanderbez/titan/core"
 	sendgrid "github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
@@ -16,15 +17,17 @@ type SendGridSender struct {
 	fromAddress string
 	fromName    string
 	client      *sendgrid.Client
+	logger      core.Logger
 }
 
 // NewSendGridSender returns a new SendGridSender.
-func NewSendGridSender(key, fromName string) SendGridSender {
+func NewSendGridSender(logger core.Logger, key, fromName string) SendGridSender {
 	return SendGridSender{
 		key:         key,
 		fromName:    fromName,
 		fromAddress: "titan@sendgrid.net",
 		client:      sendgrid.NewSendClient(key),
+		logger:      logger,
 	}
 }
 
@@ -41,10 +44,22 @@ func (sgs SendGridSender) Send(payload []byte, memo string, recipients []string)
 		to := mail.NewEmail("", recipient)
 		message := mail.NewSingleEmail(from, subject, to, string(payload), "")
 
-		// TODO: Log response on verbose/debug mode
-		if _, err := sgs.client.Send(message); err != nil {
+		response, err := sgs.client.Send(message)
+		if err != nil {
+			sgs.logger.Error(
+				fmt.Sprintf("failed to send SendGrid alert; memo %s, recipient: %s, error: %v",
+					memo, recipient, err,
+				),
+			)
+
 			return err
 		}
+
+		sgs.logger.Debug(
+			fmt.Sprintf("successfully sent SendGrid alert; memo %s, recipient: %s, response: %v",
+				memo, recipient, response.Body,
+			),
+		)
 	}
 
 	return nil
