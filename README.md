@@ -11,7 +11,7 @@ governance proposals and governance proposals that have transitioned into a voti
 stage. In addition, Titan will track when a specific validator(s) misses blocks,
 changes in power, and gets slashed.
 
-Titan aims to be minimal utility ran as a daemon alongside a validator. It uses
+Titan aims to be a minimal utility ran as a daemon alongside a validator. It uses
 [BadgerDB](https://github.com/dgraph-io/badger) as an embedded key/value store
 and [SendGrid](https://sendgrid.com/) for alerting email and SMS messages.
 
@@ -29,6 +29,10 @@ Nice-to-have down the line:
 - [ ] Allow more flexible alerting targets and filters
 
 ## Build & Usage
+
+TODO
+
+### Example Configuration
 
 TODO
 
