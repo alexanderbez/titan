@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 
 	"github.com/alexanderbez/titan/core"
@@ -25,6 +26,7 @@ type baseGovMonitor struct {
 }
 
 func newBaseGovMonitor(logger core.Logger, clients []string, name, memo string) *baseGovMonitor {
+	logger = logger.With("module", name)
 	return &baseGovMonitor{logger, core.NewClientManager(clients), name, memo}
 }
 
@@ -52,14 +54,13 @@ func (gpm *GovProposalMonitor) Exec() (res, id []byte, err error) {
 	url := fmt.Sprintf("%s/gov/proposals?status=%s", gpm.cm.Next(), govProposalStatusNew)
 	gpm.logger.Debug(fmt.Sprintf("monitoring for new governance proposals from: %s", url))
 
-	rawBody, err := core.Request(url, core.RequestGET, nil)
+	res, id, err = doGETRequest(url)
 	if err != nil {
 		gpm.logger.Error(fmt.Sprintf("failed to monitor new governance proposals; error: %v", err))
 		return nil, nil, err
 	}
 
-	bodyHash := sha256.Sum256(rawBody)
-	return rawBody, bodyHash[:], nil
+	return res, id, nil
 }
 
 // GovVotingMonitor defines a monitor responsible for monitoring governance
@@ -77,14 +78,30 @@ func NewGovVotingMonitor(logger core.Logger, clients []string, name, memo string
 // proposals that are in the voting stage. Upon success, the raw response body
 // and an ID that is the SHA256 of the response body will be returned and an
 // error otherwise.
-func (gpm *GovVotingMonitor) Exec() (res, id []byte, err error) {
-	url := fmt.Sprintf("%s/gov/proposals?status=%s", gpm.cm.Next(), govProposalStatusVoting)
-	gpm.logger.Debug(fmt.Sprintf("monitoring for governance proposals in voting stage from: %s", url))
+func (gvm *GovVotingMonitor) Exec() (res, id []byte, err error) {
+	url := fmt.Sprintf("%s/gov/proposals?status=%s", gvm.cm.Next(), govProposalStatusVoting)
+	gvm.logger.Debug(fmt.Sprintf("monitoring for governance proposals in voting stage from: %s", url))
 
+	res, id, err = doGETRequest(url)
+	if err != nil {
+		gvm.logger.Error(fmt.Sprintf("failed to monitor governance proposals in voting stage; error: %v", err))
+		return nil, nil, err
+	}
+
+	return res, id, nil
+}
+
+func doGETRequest(url string) (res, id []byte, err error) {
 	rawBody, err := core.Request(url, core.RequestGET, nil)
 	if err != nil {
-		gpm.logger.Error(fmt.Sprintf("failed to monitor governance proposals in voting stage; error: %v", err))
 		return nil, nil, err
+	}
+
+	// validate if the response contains an empty JSON array
+	tmp := []map[interface{}]interface{}{}
+	err = json.Unmarshal(rawBody, &tmp)
+	if err != nil || len(tmp) == 0 {
+		rawBody = nil
 	}
 
 	bodyHash := sha256.Sum256(rawBody)
