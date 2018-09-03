@@ -1,2 +1,3 @@
-# titan
-A lightweight API for aggregating Cosmos network telemetry and node information.
+# Titan
+
+A lightweight and simple Cosmos network validator monitoring and alerting tool.
