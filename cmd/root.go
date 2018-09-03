@@ -3,11 +3,13 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/alexanderbez/titan/alerts"
-
 	"github.com/alexanderbez/titan/config"
 	"github.com/alexanderbez/titan/core"
+	"github.com/alexanderbez/titan/manager"
 	"github.com/alexanderbez/titan/version"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -72,7 +74,6 @@ func initConfig() {
 // executeRootCmd implements the root command handler. It returns an error if
 // the command failed to execute correctly.
 func executeRootCmd(cmd *cobra.Command, args []string) error {
-	fmt.Println("debug:", viper.GetBool("debug"))
 	if err := viper.ReadInConfig(); err != nil {
 		return err
 	}
@@ -88,39 +89,22 @@ func executeRootCmd(cmd *cobra.Command, args []string) error {
 
 	// TODO: Database and RPC
 
-	baseLogger, err := createBaseLogger()
+	baseLogger, err := core.CreateBaseLogger(viper.GetString(flagLogOut), viper.GetBool(flagDebug))
 	if err != nil {
 		return err
 	}
 
-	senders := createSenders(cfg, baseLogger)
+	alerters := alerts.CreateAlerters(cfg, baseLogger)
+
+	mngr := manager.New(baseLogger, cfg.PollInterval, nil, alerters)
+	go mngr.Start()
+
+	done := make(chan bool, 1)
+	cleanup(done)
+	<-done
+	baseLogger.Info("exiting...")
 
 	return nil
-}
-
-func createBaseLogger() (core.Logger, error) {
-	logFile := os.Stdout
-
-	if logOut := viper.GetString(flagLogOut); logOut != "" {
-		file, err := os.OpenFile(logOut, os.O_CREATE|os.O_WRONLY, 0666)
-		if err != nil {
-			return core.Logger{}, err
-		}
-
-		logFile = file
-	}
-
-	return core.NewLogger(logFile, viper.GetBool(flagDebug)), nil
-}
-
-func createSenders(cfg config.Config, logger core.Logger) []alerts.Sender {
-	return []alerts.Sender{
-		alerts.NewSendGridSender(
-			logger.With("module", "SendGrid"),
-			cfg.Integrations.SendGrid.Key,
-			cfg.Integrations.SendGrid.FromName,
-		),
-	}
 }
 
 // Execute executes the application root command. If any error is returned, it
@@ -129,4 +113,14 @@ func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
+}
+
+func cleanup(done chan<- bool) {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		<-sigs
+		done <- true
+	}()
 }
