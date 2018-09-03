@@ -12,6 +12,7 @@ type (
 		Filters      *Filters       `mapstructure:"filters"`
 		Network      *NetworkConfig `mapstructure:"network"`
 		Integrations *Integrations  `mapstructure:"integrations"`
+		Database     *Database      `mapstructure:"database"`
 	}
 
 	// NetworkConfig defines network related configuration.
@@ -42,6 +43,11 @@ type (
 	SendGridAPI struct {
 		Key      string `mapstructure:"api_key"`
 		FromName string `mapstructure:"from_name"`
+	}
+
+	// Database defines embedded database configuration.
+	Database struct {
+		DataDir string `mapstructure:"data_dir"`
 	}
 )
 
