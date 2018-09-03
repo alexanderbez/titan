@@ -1,7 +1,9 @@
 package alerts
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/alexanderbez/titan/core"
 	sendgrid "github.com/sendgrid/sendgrid-go"
@@ -50,10 +52,14 @@ func (sga SendGridAlerter) AlertWithRecipients(payload []byte, memo string, reci
 
 	for _, recipient := range recipients {
 		to := mail.NewEmail("", recipient)
-		message := mail.NewSingleEmail(from, subject, to, string(payload), "")
+		message := newMailMessage(from, to, subject, string(payload))
 
-		response, err := sga.client.Send(message)
-		if err != nil {
+		resp, err := sga.client.Send(message)
+		if err != nil || resp.StatusCode != http.StatusAccepted {
+			if err == nil {
+				err = errors.New(resp.Body)
+			}
+
 			sga.logger.Error(
 				fmt.Sprintf("failed to send SendGrid alert; memo %s, recipient: %s, error: %v",
 					memo, recipient, err,
@@ -65,10 +71,15 @@ func (sga SendGridAlerter) AlertWithRecipients(payload []byte, memo string, reci
 
 		sga.logger.Debug(
 			fmt.Sprintf("successfully sent SendGrid alert; memo %s, recipient: %s, response: %v",
-				memo, recipient, response.Body,
+				memo, recipient, resp.Body,
 			),
 		)
 	}
 
 	return nil
+}
+
+func newMailMessage(from, to *mail.Email, subject string, htmlContent string) *mail.SGMailV3 {
+	html := mail.NewContent("text/html", htmlContent)
+	return mail.NewV3MailInit(from, subject, to, html)
 }
