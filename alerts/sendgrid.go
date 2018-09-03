@@ -60,19 +60,17 @@ func (sga SendGridAlerter) AlertWithRecipients(payload []byte, memo string, reci
 				err = errors.New(resp.Body)
 			}
 
-			sga.logger.Error(
-				fmt.Sprintf("failed to send SendGrid alert; memo %s, recipient: %s, error: %v",
-					memo, recipient, err,
-				),
+			sga.logger.Errorf(
+				"failed to send SendGrid alert; memo %s, recipient: %s, error: %v",
+				memo, recipient, err,
 			)
 
 			return err
 		}
 
-		sga.logger.Debug(
-			fmt.Sprintf("successfully sent SendGrid alert; memo %s, recipient: %s, response: %v",
-				memo, recipient, resp.Body,
-			),
+		sga.logger.Debugf(
+			"successfully sent SendGrid alert; memo %s, recipient: %s, response: %v",
+			memo, recipient, resp.Body,
 		)
 	}
 

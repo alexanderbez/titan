@@ -2,7 +2,6 @@ package monitor
 
 import (
 	"crypto/sha256"
-	"encoding/json"
 	"fmt"
 
 	"github.com/alexanderbez/titan/core"
@@ -50,13 +49,13 @@ func NewGovProposalMonitor(logger core.Logger, clients []string, name, memo stri
 // Exec implements the Monitor interface. It will attempt to fetch new
 // governance proposals. Upon success, the raw response body and an ID that is
 // the SHA256 of the response body will be returned and an error otherwise.
-func (gpm *GovProposalMonitor) Exec() (res, id []byte, err error) {
+func (gpm *GovProposalMonitor) Exec(_ []string) (res, id []byte, err error) {
 	url := fmt.Sprintf("%s/gov/proposals?status=%s", gpm.cm.Next(), govProposalStatusNew)
-	gpm.logger.Debug(fmt.Sprintf("monitoring for new governance proposals from: %s", url))
+	gpm.logger.Debugf("monitoring for new governance proposals from: %s", url)
 
 	res, id, err = doGETRequest(url)
 	if err != nil {
-		gpm.logger.Error(fmt.Sprintf("failed to monitor new governance proposals; error: %v", err))
+		gpm.logger.Errorf("failed to monitor new governance proposals; error: %v", err)
 		return nil, nil, err
 	}
 
@@ -78,13 +77,13 @@ func NewGovVotingMonitor(logger core.Logger, clients []string, name, memo string
 // proposals that are in the voting stage. Upon success, the raw response body
 // and an ID that is the SHA256 of the response body will be returned and an
 // error otherwise.
-func (gvm *GovVotingMonitor) Exec() (res, id []byte, err error) {
+func (gvm *GovVotingMonitor) Exec(_ []string) (res, id []byte, err error) {
 	url := fmt.Sprintf("%s/gov/proposals?status=%s", gvm.cm.Next(), govProposalStatusVoting)
-	gvm.logger.Debug(fmt.Sprintf("monitoring for governance proposals in voting stage from: %s", url))
+	gvm.logger.Debugf("monitoring for governance proposals in voting stage from: %s", url)
 
 	res, id, err = doGETRequest(url)
 	if err != nil {
-		gvm.logger.Error(fmt.Sprintf("failed to monitor governance proposals in voting stage; error: %v", err))
+		gvm.logger.Errorf("failed to monitor governance proposals in voting stage; error: %v", err)
 		return nil, nil, err
 	}
 
@@ -98,9 +97,7 @@ func doGETRequest(url string) (res, id []byte, err error) {
 	}
 
 	// validate if the response contains an empty JSON array
-	tmp := []map[interface{}]interface{}{}
-	err = json.Unmarshal(rawBody, &tmp)
-	if err != nil || len(tmp) == 0 {
+	if string(rawBody) == "[]" {
 		rawBody = nil
 	}
 
