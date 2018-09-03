@@ -36,3 +36,22 @@ func (logger Logger) With(key, value string) Logger {
 	ctxLogger := logger.WithField(key, value)
 	return Logger{ctxLogger}
 }
+
+// CreateBaseLogger creates a base logger for which other components and modules
+// can extend upon, inheriting the base configuration and settings of a core
+// logger. An error is returned if a non-empty log file path is given that
+// cannot be created.
+func CreateBaseLogger(logOut string, debug bool) (Logger, error) {
+	logFile := os.Stdout
+
+	if logOut != "" {
+		file, err := os.OpenFile(logOut, os.O_CREATE|os.O_WRONLY, 0666)
+		if err != nil {
+			return Logger{}, err
+		}
+
+		logFile = file
+	}
+
+	return NewLogger(logFile, debug), nil
+}

@@ -48,21 +48,23 @@ type (
 // Validate performs basic validation of parsed application configuration. If
 // any validation fails, an error is immediately returned.
 func (cfg Config) Validate() error {
-	errPrefix := "invalid configuration"
-
 	if len(cfg.Network.LCDClients) == 0 {
-		return fmt.Errorf("%s: no LCD clients provided", errPrefix)
+		return newConfigErr("no LCD clients provided")
 	}
 
 	if cfg.Integrations.SendGrid.Key == "" {
-		return fmt.Errorf("%s: no SendGrid API key provided", errPrefix)
+		return newConfigErr("no SendGrid API key provided")
 	}
 
 	if len(cfg.Targets.EmailRecipients) == 0 &&
 		len(cfg.Targets.SMSRecipients) == 0 &&
 		len(cfg.Targets.Webhooks) == 0 {
-		return fmt.Errorf("%s: no alert targets provided", errPrefix)
+		return newConfigErr("no alert targets provided")
 	}
 
 	return nil
+}
+
+func newConfigErr(errStr string) error {
+	return fmt.Errorf("invalid configuration: %s", errStr)
 }
