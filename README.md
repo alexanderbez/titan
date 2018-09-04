@@ -6,7 +6,7 @@
 
 A lightweight and simple Cosmos network validator monitoring and alerting tool.
 The primary goal of Titan is to trigger simple configurable alerts when monitored
-events occur. These events include global/non-validator events such as new
+events occur. These events include global(non-validator) events such as new
 governance proposals and governance proposals that have transitioned into a voting
 stage. In addition, Titan will track when a specific validator(s) misses blocks,
 changes in power, and gets slashed.
