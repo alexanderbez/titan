@@ -10,6 +10,7 @@ import (
 	"github.com/alexanderbez/titan/config"
 	"github.com/alexanderbez/titan/core"
 	"github.com/alexanderbez/titan/manager"
+	"github.com/alexanderbez/titan/monitor"
 	"github.com/alexanderbez/titan/version"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -87,7 +88,7 @@ func executeRootCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// TODO: Database and RPC
+	// TODO: RPC
 
 	baseLogger, err := core.CreateBaseLogger(viper.GetString(flagLogOut), viper.GetBool(flagDebug))
 	if err != nil {
@@ -95,13 +96,21 @@ func executeRootCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	alerters := alerts.CreateAlerters(cfg, baseLogger)
+	monitors := monitor.CreateMonitors(cfg, baseLogger)
 
-	mngr := manager.New(baseLogger, cfg.PollInterval, nil, alerters)
+	db, err := core.NewBadgerDB(cfg, baseLogger)
+	if err != nil {
+		return err
+	}
+
+	mngr := manager.New(baseLogger, db, cfg, monitors, alerters)
 	go mngr.Start()
 
 	done := make(chan bool, 1)
-	cleanup(done)
+
+	handleSigs(done)
 	<-done
+	db.Close()
 	baseLogger.Info("exiting...")
 
 	return nil
@@ -115,7 +124,7 @@ func Execute() {
 	}
 }
 
-func cleanup(done chan<- bool) {
+func handleSigs(done chan<- bool) {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
