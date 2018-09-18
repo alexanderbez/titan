@@ -1,76 +1,81 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+
+	"gopkg.in/go-playground/validator.v9"
 )
 
 type (
 	// Config defines the application's configuration structure.
 	Config struct {
-		PollInterval uint           `mapstructure:"poll_interval"`
-		Targets      *Targets       `mapstructure:"targets"`
-		Filters      *Filters       `mapstructure:"filters"`
-		Network      *NetworkConfig `mapstructure:"network"`
-		Integrations *Integrations  `mapstructure:"integrations"`
-		Database     *Database      `mapstructure:"database"`
+		PollInterval uint          `mapstructure:"poll_interval" validate:"gt=10,required"`
+		Targets      Targets       `mapstructure:"targets" validate:"required,dive"`
+		Filter       Filter        `mapstructure:"filter" validate:"required,dive"`
+		Network      NetworkConfig `mapstructure:"network" validate:"required,dive"`
+		Integrations Integrations  `mapstructure:"integrations" validate:"required,dive"`
+		Database     Database      `mapstructure:"database" validate:"required,dive"`
+	}
+
+	// Database defines embedded database configuration.
+	Database struct {
+		DataDir string `mapstructure:"data_dir" validate:"required"`
 	}
 
 	// NetworkConfig defines network related configuration.
 	NetworkConfig struct {
-		LCDClients []string `mapstructure:"lcd_clients"`
+		Clients []string `mapstructure:"clients" validate:"dive,url"`
 	}
 
 	// Targets defines alerting targets.
 	Targets struct {
-		Webhooks        []string `mapstructure:"webhooks"`
+		Webhooks        []string `mapstructure:"webhooks" validate:"dive,url"`
 		SMSRecipients   []string `mapstructure:"sms_recipients"`
-		EmailRecipients []string `mapstructure:"email_recipients"`
+		EmailRecipients []string `mapstructure:"email_recipients" validate:"dive,email"`
 	}
 
-	// Filters defines a set of validator address filters to match against when
+	// Filter defines a set of validator address filters to match against when
 	// monitoring and alerting.
-	Filters struct {
-		Validators []string `mapstructure:"validators"`
+	Filter struct {
+		Validators []ValidatorFilter `mapstructure:"validator" validate:"required,dive"`
+	}
+
+	// ValidatorFilter defines a validator filter against.
+	ValidatorFilter struct {
+		Operator string `mapstructure:"operator" validate:"contains=cosmosaccaddr,required"`
+		Address  string `mapstructure:"address" validate:"hexadecimal,required"`
 	}
 
 	// Integrations defines integration configuration for utilizing third-party
 	// alerting tools.
 	Integrations struct {
-		SendGrid *SendGridAPI `mapstructure:"sendgrid"`
+		SendGrid SendGridAPI `mapstructure:"sendgrid" validate:"required,dive"`
 	}
 
 	// SendGridAPI defines the required configuration for using the SendGrid API.
 	SendGridAPI struct {
-		Key      string `mapstructure:"api_key"`
-		FromName string `mapstructure:"from_name"`
-	}
-
-	// Database defines embedded database configuration.
-	Database struct {
-		DataDir string `mapstructure:"data_dir"`
+		Key      string `mapstructure:"api_key" validate:"required"`
+		FromName string `mapstructure:"from_name" validate:"required"`
 	}
 )
 
 // Validate performs basic validation of parsed application configuration. If
 // any validation fails, an error is immediately returned.
 func (cfg Config) Validate() error {
-	if len(cfg.Network.LCDClients) == 0 {
-		return newConfigErr("no LCD clients provided")
-	}
+	structValidate := validator.New()
 
-	if cfg.Integrations.SendGrid.Key == "" {
-		return newConfigErr("no SendGrid API key provided")
-	}
-
-	if len(cfg.Targets.EmailRecipients) == 0 &&
+	if err := structValidate.Struct(cfg); err != nil {
+		return newConfigErr(err)
+	} else if len(cfg.Targets.EmailRecipients) == 0 &&
 		len(cfg.Targets.SMSRecipients) == 0 &&
 		len(cfg.Targets.Webhooks) == 0 {
-		return newConfigErr("no alert targets provided")
+		return newConfigErr(errors.New("no alert targets provided"))
 	}
 
 	return nil
 }
 
-func newConfigErr(errStr string) error {
-	return fmt.Errorf("invalid configuration: %s", errStr)
+func newConfigErr(err error) error {
+	return fmt.Errorf("invalid configuration: \"%s\"", err)
 }
