@@ -4,6 +4,9 @@ import (
 	"crypto/sha256"
 	"fmt"
 
+	"github.com/pkg/errors"
+
+	"github.com/alexanderbez/titan/config"
 	"github.com/alexanderbez/titan/core"
 	"github.com/cosmos/cosmos-sdk/wire"
 	"github.com/cosmos/cosmos-sdk/x/gov"
@@ -48,26 +51,18 @@ func (gm *baseGovMonitor) Name() string { return gm.name }
 // Memo implements the Monitor interface. It returns the monitor's memo.
 func (gm *baseGovMonitor) Memo() string { return gm.memo }
 
-func (gm baseGovMonitor) doRequest(url string) (res, id []byte, err error) {
-	rawBody, err := core.Request(url, core.RequestGET, nil)
+func (gm baseGovMonitor) getProposals(url string) (resp []byte, proposals []gov.Proposal, err error) {
+	resp, err = core.Request(url, core.RequestGET, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var proposals []gov.Proposal
-	err = gm.codec.UnmarshalJSON(rawBody, &proposals)
+	err = gm.codec.UnmarshalJSON(resp, &proposals)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// Return an empty response body and ID if no proposals were found so that no
-	// alert will be triggered.
-	if len(proposals) == 0 {
-		return nil, nil, nil
-	}
-
-	bodyHash := sha256.Sum256(rawBody)
-	return rawBody, bodyHash[:], nil
+	return resp, proposals, nil
 }
 
 // GovProposalMonitor defines a monitor responsible for monitoring new
@@ -84,17 +79,26 @@ func NewGovProposalMonitor(logger core.Logger, clients []string, name, memo stri
 // Exec implements the Monitor interface. It will attempt to fetch new
 // governance proposals. Upon success, the raw response body and an ID that is
 // the SHA256 of the response body will be returned and an error otherwise.
-func (gpm *GovProposalMonitor) Exec(_ []string) (res, id []byte, err error) {
+func (gpm *GovProposalMonitor) Exec(_ []config.ValidatorFilter) (resp, id []byte, err error) {
 	url := fmt.Sprintf("%s/gov/proposals?status=%s", gpm.cm.Next(), govProposalStatusNew)
 	gpm.logger.Debug("monitoring for new governance proposals")
 
-	res, id, err = gpm.doRequest(url)
+	resp, proposals, err := gpm.getProposals(url)
 	if err != nil {
-		gpm.logger.Errorf("failed to monitor new governance proposals; error: %v", err)
-		return nil, nil, err
+		gpm.logger.Errorf("failed to monitor for new governance proposals: %v", err)
+		return nil, nil, errors.Wrap(err, "failed to monitor for new governance proposals")
 	}
 
-	return res, id, nil
+	// Do not return a response and ID if no proposals were returned as there is
+	// no need to alert.
+	if len(proposals) == 0 {
+		return nil, nil, errors.New("no proposals returned")
+	}
+
+	rawHash := sha256.Sum256(resp)
+	id = rawHash[:]
+
+	return resp, id, nil
 }
 
 // GovVotingMonitor defines a monitor responsible for monitoring governance
@@ -112,15 +116,25 @@ func NewGovVotingMonitor(logger core.Logger, clients []string, name, memo string
 // proposals that are in the voting stage. Upon success, the raw response body
 // and an ID that is the SHA256 of the response body will be returned and an
 // error otherwise.
-func (gvm *GovVotingMonitor) Exec(_ []string) (res, id []byte, err error) {
+func (gvm *GovVotingMonitor) Exec(_ []config.ValidatorFilter) (resp, id []byte, err error) {
 	url := fmt.Sprintf("%s/gov/proposals?status=%s", gvm.cm.Next(), govProposalStatusVoting)
-	gvm.logger.Debug("monitoring for governance proposals in voting stage")
+	gvm.logger.Debug("monitoring for active governance proposals")
 
-	res, id, err = gvm.doRequest(url)
+	resp, proposals, err := gvm.getProposals(url)
 	if err != nil {
-		gvm.logger.Errorf("failed to monitor governance proposals in voting stage; error: %v", err)
-		return nil, nil, err
+		gvm.logger.Errorf("failed to monitor for active governance proposals: %v", err)
+		return nil, nil, errors.Wrap(err, "failed to monitor for active governance proposals")
 	}
 
-	return res, id, nil
+	// Do not return a response and ID if no proposals were returned as there is
+	// no need to alert.
+	if len(proposals) == 0 {
+		return nil, nil, errors.New("no proposals returned")
+	}
+
+	rawHash := sha256.Sum256(resp)
+	id = rawHash[:]
+
+	return resp, id, nil
+
 }
