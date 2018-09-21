@@ -1,7 +1,7 @@
 package monitor_test
 
 import (
-	"encoding/hex"
+	"crypto/sha256"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -56,9 +56,9 @@ func TestEmptyProposals(t *testing.T) {
 
 	gpm := newTestGovProposalMonitor(t, ts)
 
-	res, id, err := gpm.Exec()
+	resp, id, err := gpm.Exec()
 	require.Error(t, err)
-	require.Nil(t, res)
+	require.Nil(t, resp)
 	require.Nil(t, id)
 }
 
@@ -88,10 +88,18 @@ func TestNewProposals(t *testing.T) {
 
 	gpm := newTestGovProposalMonitor(t, ts)
 
-	res, id, err := gpm.Exec()
+	resp, id, err := gpm.Exec()
 	require.NoError(t, err)
-	require.Equal(t, res, raw)
-	require.Equal(t, hex.EncodeToString(id), "473f109e0729b4751cd59b1350cbe56e931e816d0a907083ddbb7f176f9c1baa")
+
+	var props []gov.Proposal
+	err = codec.UnmarshalJSON(resp, &props)
+	require.NoError(t, err)
+
+	rawHash := sha256.Sum256(resp)
+	exID := rawHash[:]
+
+	require.Equal(t, exID, id)
+	require.Len(t, props, len(proposals))
 }
 
 func TestEmptyActiveProposals(t *testing.T) {
@@ -111,9 +119,9 @@ func TestEmptyActiveProposals(t *testing.T) {
 
 	gvm := newTestGovVotingMonitor(t, ts)
 
-	res, id, err := gvm.Exec()
+	resp, id, err := gvm.Exec()
 	require.Error(t, err)
-	require.Nil(t, res)
+	require.Nil(t, resp)
 	require.Nil(t, id)
 }
 
@@ -143,8 +151,16 @@ func TestNewActiveProposals(t *testing.T) {
 
 	gvm := newTestGovVotingMonitor(t, ts)
 
-	res, id, err := gvm.Exec()
+	resp, id, err := gvm.Exec()
 	require.NoError(t, err)
-	require.Equal(t, res, raw)
-	require.Equal(t, hex.EncodeToString(id), "f9e72639bb3790fff6320897110a47c4e763657a994171adac545c22da18192c")
+
+	var props []gov.Proposal
+	err = codec.UnmarshalJSON(resp, &props)
+	require.NoError(t, err)
+
+	rawHash := sha256.Sum256(resp)
+	exID := rawHash[:]
+
+	require.Equal(t, exID, id)
+	require.Len(t, props, len(proposals))
 }
