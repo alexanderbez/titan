@@ -30,7 +30,7 @@ type baseGovMonitor struct {
 	memo   string
 }
 
-func newBaseGovMonitor(logger core.Logger, clients []string, name, memo string) *baseGovMonitor {
+func newBaseGovMonitor(logger core.Logger, cfg config.Config, name, memo string) *baseGovMonitor {
 	logger = logger.With("module", name)
 
 	codec := wire.NewCodec()
@@ -39,7 +39,7 @@ func newBaseGovMonitor(logger core.Logger, clients []string, name, memo string) 
 	return &baseGovMonitor{
 		codec:  codec,
 		logger: logger,
-		cm:     core.NewClientManager(clients),
+		cm:     core.NewClientManager(cfg.Network.Clients),
 		name:   name,
 		memo:   memo,
 	}
@@ -72,14 +72,14 @@ type GovProposalMonitor struct {
 }
 
 // NewGovProposalMonitor returns a reference to a new GovProposalMonitor.
-func NewGovProposalMonitor(logger core.Logger, clients []string, name, memo string) *GovProposalMonitor {
-	return &GovProposalMonitor{newBaseGovMonitor(logger, clients, name, memo)}
+func NewGovProposalMonitor(logger core.Logger, cfg config.Config, name, memo string) *GovProposalMonitor {
+	return &GovProposalMonitor{newBaseGovMonitor(logger, cfg, name, memo)}
 }
 
 // Exec implements the Monitor interface. It will attempt to fetch new
 // governance proposals. Upon success, the raw response body and an ID that is
 // the SHA256 of the response body will be returned and an error otherwise.
-func (gpm *GovProposalMonitor) Exec(_ []config.ValidatorFilter) (resp, id []byte, err error) {
+func (gpm *GovProposalMonitor) Exec() (resp, id []byte, err error) {
 	url := fmt.Sprintf("%s/gov/proposals?status=%s", gpm.cm.Next(), govProposalStatusNew)
 	gpm.logger.Debug("monitoring for new governance proposals")
 
@@ -108,15 +108,15 @@ type GovVotingMonitor struct {
 }
 
 // NewGovVotingMonitor returns a reference to a new GovVotingMonitor.
-func NewGovVotingMonitor(logger core.Logger, clients []string, name, memo string) *GovVotingMonitor {
-	return &GovVotingMonitor{newBaseGovMonitor(logger, clients, name, memo)}
+func NewGovVotingMonitor(logger core.Logger, cfg config.Config, name, memo string) *GovVotingMonitor {
+	return &GovVotingMonitor{newBaseGovMonitor(logger, cfg, name, memo)}
 }
 
 // Exec implements the Monitor interface. It will attempt to fetch governance
 // proposals that are in the voting stage. Upon success, the raw response body
 // and an ID that is the SHA256 of the response body will be returned and an
 // error otherwise.
-func (gvm *GovVotingMonitor) Exec(_ []config.ValidatorFilter) (resp, id []byte, err error) {
+func (gvm *GovVotingMonitor) Exec() (resp, id []byte, err error) {
 	url := fmt.Sprintf("%s/gov/proposals?status=%s", gvm.cm.Next(), govProposalStatusVoting)
 	gvm.logger.Debug("monitoring for active governance proposals")
 
