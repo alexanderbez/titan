@@ -643,6 +643,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/alexanderbez/godash",
+    "github.com/cosmos/cosmos-sdk/types",
     "github.com/cosmos/cosmos-sdk/wire",
     "github.com/cosmos/cosmos-sdk/x/gov",
     "github.com/cosmos/cosmos-sdk/x/stake",
@@ -656,7 +657,9 @@
     "github.com/spf13/cobra",
     "github.com/spf13/viper",
     "github.com/stretchr/testify/require",
+    "github.com/tendermint/tendermint/crypto/ed25519",
     "github.com/tendermint/tendermint/rpc/core/types",
+    "github.com/tendermint/tendermint/types",
     "gopkg.in/go-playground/validator.v9",
   ]
   solver-name = "gps-cdcl"
