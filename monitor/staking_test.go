@@ -12,7 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
 	"github.com/cosmos/cosmos-sdk/x/stake"
-	stakeTypes "github.com/cosmos/cosmos-sdk/x/stake/types"
+	staketypes "github.com/cosmos/cosmos-sdk/x/stake/types"
 
 	"github.com/stretchr/testify/require"
 )
@@ -118,7 +118,7 @@ func TestMatchingJailedValidators(t *testing.T) {
 	val := stake.NewValidator(opAddr1, nil, stake.Description{})
 	val.Revoked = true
 
-	validators := []stakeTypes.Validator{val}
+	validators := []staketypes.Validator{val}
 
 	raw, err := wire.MarshalJSONIndent(codec, validators)
 	require.NoError(t, err)
@@ -143,7 +143,7 @@ func TestMatchingJailedValidators(t *testing.T) {
 	resp, id, err := jvm.Exec()
 	require.NoError(t, err)
 
-	var vals []stakeTypes.Validator
+	var vals []staketypes.BechValidator
 	err = codec.UnmarshalJSON(resp, &vals)
 	require.NoError(t, err)
 
