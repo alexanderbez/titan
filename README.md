@@ -43,7 +43,11 @@ $ titan --config=path/to/config.toml --out=path/to/log/file --debug=true|false
 
 See `$ titan --help` for further usage.
 
-Note: Titan by default looks for configuration in `$HOME/.titan/config.toml`.
+Note:
+
+- Titan by default looks for configuration in `$HOME/.titan/config.toml`.
+- Titan operates through a series of provided LCD clients. More than a single
+  client should be provided and each client should be up-to-date and trusted.
 
 ## Example Configuration
 

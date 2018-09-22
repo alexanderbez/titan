@@ -105,6 +105,8 @@ func executeRootCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	mngr := manager.New(baseLogger, db, cfg, monitors, alerters)
+
+	baseLogger.Info("starting Titan!")
 	go mngr.Start()
 
 	done := make(chan bool, 1)
