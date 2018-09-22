@@ -10,7 +10,7 @@ import (
 	"github.com/alexanderbez/titan/core"
 	"github.com/cosmos/cosmos-sdk/wire"
 	"github.com/cosmos/cosmos-sdk/x/stake"
-	stakeTypes "github.com/cosmos/cosmos-sdk/x/stake/types"
+	staketypes "github.com/cosmos/cosmos-sdk/x/stake/types"
 )
 
 var (
@@ -55,12 +55,14 @@ func (sm *baseStakingMonitor) Name() string { return sm.name }
 // Memo implements the Monitor interface. It returns the monitor's memo.
 func (sm *baseStakingMonitor) Memo() string { return sm.memo }
 
-func (sm baseStakingMonitor) getValidators(url string) (resp []byte, vals []stakeTypes.Validator, err error) {
+func (sm baseStakingMonitor) getValidators(url string) (resp []byte, vals []staketypes.BechValidator, err error) {
 	resp, err = core.Request(url, core.RequestGET, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
+	// TODO: Update once the SDK version has been updated to support the removal
+	// of the Bech32 serialization.
 	err = sm.codec.UnmarshalJSON(resp, &vals)
 	if err != nil {
 		return nil, nil, err
@@ -101,11 +103,11 @@ func (jvm *JailedValidatorMonitor) Exec() (resp, id []byte, err error) {
 	}
 
 	// filter validators that are jailed and match the given filter of addresses
-	var filteredVals []stakeTypes.Validator
+	var filteredVals []staketypes.BechValidator
 	for _, val := range vals {
 		if _, ok := filtersMap[val.Owner.String()]; ok {
 			// TODO: Update once the SDK version has been updated to support the
-			// jailed field.
+			// 'jailed' field.
 			if val.Revoked {
 				filteredVals = append(filteredVals, val)
 			}
