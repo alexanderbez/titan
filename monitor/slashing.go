@@ -36,6 +36,8 @@ type (
 		filter []config.ValidatorFilter
 		cm     *core.ClientManager
 
+		latestHeight int64
+
 		name string
 		memo string
 	}
@@ -78,7 +80,7 @@ func (sm *baseSlashingMonitor) Name() string { return sm.name }
 // Memo implements the Monitor interface. It returns the monitor's memo.
 func (sm *baseSlashingMonitor) Memo() string { return sm.memo }
 
-func (sm baseSlashingMonitor) getBlock(url string) (resp []byte, block *ctypes.ResultBlock, err error) {
+func (sm *baseSlashingMonitor) getBlock(url string) (resp []byte, block *ctypes.ResultBlock, err error) {
 	resp, err = core.Request(url, core.RequestGET, nil)
 	if err != nil {
 		return nil, nil, err
@@ -87,6 +89,15 @@ func (sm baseSlashingMonitor) getBlock(url string) (resp []byte, block *ctypes.R
 	err = sm.codec.UnmarshalJSON(resp, &block)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	// An older block could be received if the current client is behind some
+	// previously used client or a single client is behind a LB with nodes that
+	// are out of sync.
+	if block.Block.Height > sm.latestHeight {
+		sm.latestHeight = block.Block.Height
+	} else {
+		return nil, nil, errors.New("received old block")
 	}
 
 	return resp, block, nil
