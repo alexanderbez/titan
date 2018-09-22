@@ -134,7 +134,7 @@ func (bdb *BadgerDB) Set(namespace, key, value []byte) error {
 }
 
 // Has implements the DB interface. It returns a boolean reflecting if the
-// datbase has a given key for a namespace or not. An error is only returned if
+// database has a given key for a namespace or not. An error is only returned if
 // an error to Get would be returned that is not of type badger.ErrKeyNotFound.
 func (bdb *BadgerDB) Has(namespace, key []byte) (ok bool, err error) {
 	_, err = bdb.Get(namespace, key)
