@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path"
 	"syscall"
 
 	"github.com/alexanderbez/titan/alerts"
@@ -66,8 +67,8 @@ func initConfig() {
 			os.Exit(1)
 		}
 
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".titan")
+		viper.AddConfigPath(path.Join(home, ".titan"))
+		viper.SetConfigName("config")
 		viper.SetConfigType("toml")
 	}
 }
@@ -88,7 +89,7 @@ func executeRootCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// TODO: RPC
+	// TODO: RPC service
 
 	baseLogger, err := core.CreateBaseLogger(viper.GetString(flagLogOut), viper.GetBool(flagDebug))
 	if err != nil {
