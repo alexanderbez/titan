@@ -32,6 +32,7 @@ type (
 		Get(namespace, key []byte) (value []byte, err error)
 		Set(namespace, key, value []byte) error
 		Has(namespace, key []byte) (bool, error)
+		SetWithTTL(namespace, key, value []byte, ttl time.Duration) error
 		Close() error
 	}
 
@@ -99,6 +100,22 @@ func (bdb *BadgerDB) Get(namespace, key []byte) (value []byte, err error) {
 	}
 
 	return value, nil
+}
+
+// SetWithTTL implements the DB interface. It attempts to store a value for a
+// given key, namespace and TTL duration. If the key/value pair cannot be
+// saved, an error is returned.
+func (bdb *BadgerDB) SetWithTTL(namespace, key, value []byte, ttl time.Duration) error {
+	err := bdb.db.Update(func(txn *badger.Txn) error {
+		return txn.SetWithTTL(badgerNamespaceKey(namespace, key), value, ttl)
+	})
+
+	if err != nil {
+		bdb.logger.Debugf("failed to set key %s for namespace %s: %v", key, namespace, err)
+		return err
+	}
+
+	return nil
 }
 
 // Set implements the DB interface. It attempts to store a value for a given key
