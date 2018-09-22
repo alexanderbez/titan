@@ -21,9 +21,9 @@ const (
 	badgerGCInterval = 10 * time.Minute
 )
 
+// Badger namespaces
 var (
-	// BadgerAlertNamespace defines the alerts BadgerDB namespace.
-	BadgerAlertNamespace = []byte("alerts")
+	BadgerAlertsNamespace = []byte("alerts")
 )
 
 type (
