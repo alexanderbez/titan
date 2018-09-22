@@ -9,6 +9,11 @@ import (
 	"github.com/alexanderbez/titan/monitor"
 )
 
+var (
+	// default alert DB TTL of roughly one month
+	alertTTL = 30 * 24 * time.Hour
+)
+
 // Manager implements an monitoring manager that is responsible for executing
 // various monitors and alerting a series of alerting targets. For every
 // successful monitor whose response/result has not been seen before, will be
@@ -65,7 +70,7 @@ func (mngr Manager) poll() {
 			if !ok && err == nil {
 				err := alerter.Alert(res, mon.Memo())
 				if err == nil {
-					err := mngr.db.Set(core.BadgerAlertsNamespace, id, res)
+					err := mngr.db.SetWithTTL(core.BadgerAlertsNamespace, id, res, alertTTL)
 					if err != nil {
 						mngr.logger.Debugf("failed to persist alert: %v", err)
 					}
