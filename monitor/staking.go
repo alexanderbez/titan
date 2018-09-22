@@ -87,11 +87,11 @@ func NewJailedValidatorMonitor(logger core.Logger, cfg config.Config, name, memo
 // is the SHA256 of said encoding will be returned and an error otherwise.
 func (jvm *JailedValidatorMonitor) Exec() (resp, id []byte, err error) {
 	url := fmt.Sprintf("%s/stake/validators", jvm.cm.Next())
-	jvm.logger.Debug("monitoring for new jailed validators")
+	jvm.logger.Info("monitoring for new jailed validators")
 
 	_, vals, err := jvm.getValidators(url)
 	if err != nil {
-		jvm.logger.Errorf("failed to monitor for validators: %v", err)
+		jvm.logger.Errorf("failed to get all validators: %v", err)
 		return nil, nil, err
 	}
 

@@ -89,7 +89,7 @@ func NewGovProposalMonitor(logger core.Logger, cfg config.Config, name, memo str
 // the SHA256 of the response body will be returned and an error otherwise.
 func (gpm *GovProposalMonitor) Exec() (resp, id []byte, err error) {
 	url := fmt.Sprintf("%s/gov/proposals?status=%s", gpm.cm.Next(), govProposalStatusNew)
-	gpm.logger.Debug("monitoring for new governance proposals")
+	gpm.logger.Info("monitoring for new governance proposals")
 
 	resp, proposals, err := gpm.getProposals(url)
 	if err != nil {
@@ -126,7 +126,7 @@ func NewGovVotingMonitor(logger core.Logger, cfg config.Config, name, memo strin
 // error otherwise.
 func (gvm *GovVotingMonitor) Exec() (resp, id []byte, err error) {
 	url := fmt.Sprintf("%s/gov/proposals?status=%s", gvm.cm.Next(), govProposalStatusVoting)
-	gvm.logger.Debug("monitoring for active governance proposals")
+	gvm.logger.Info("monitoring for active governance proposals")
 
 	resp, proposals, err := gvm.getProposals(url)
 	if err != nil {

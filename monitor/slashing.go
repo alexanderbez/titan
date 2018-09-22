@@ -109,7 +109,7 @@ func NewMissingSigMonitor(logger core.Logger, cfg config.Config, name, memo stri
 // encoding will be returned and an error otherwise.
 func (msm *MissingSigMonitor) Exec() (resp, id []byte, err error) {
 	url := fmt.Sprintf("%s/blocks/latest", msm.cm.Next())
-	msm.logger.Debug("monitoring for validators that have missed signing the latest block")
+	msm.logger.Info("monitoring for validators that have missed signing the latest block")
 
 	_, block, err := msm.getBlock(url)
 	if err != nil {
@@ -174,7 +174,7 @@ func NewDoubleSignMonitor(logger core.Logger, cfg config.Config, name, memo stri
 // returned and an error otherwise.
 func (dsm *DoubleSignMonitor) Exec() (resp, id []byte, err error) {
 	url := fmt.Sprintf("%s/blocks/latest", dsm.cm.Next())
-	dsm.logger.Debug("monitoring for validators that have double signed")
+	dsm.logger.Info("monitoring for validators that have double signed")
 
 	_, block, err := dsm.getBlock(url)
 	if err != nil {

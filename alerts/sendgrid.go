@@ -69,8 +69,8 @@ func (sga SendGridAlerter) AlertWithRecipients(payload []byte, memo string, reci
 		}
 
 		sga.logger.Debugf(
-			"successfully sent SendGrid alert; memo %s, recipient: %s, response: %v",
-			memo, recipient, resp.Body,
+			"successfully sent SendGrid alert; memo %s, recipient: %s",
+			memo, recipient,
 		)
 	}
 
