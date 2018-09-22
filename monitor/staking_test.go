@@ -55,7 +55,7 @@ func TestNoJailedValidators(t *testing.T) {
 
 	clients := []string{ts.URL}
 	cfg := config.Config{
-		Filter: config.Filter{
+		Filters: config.Filters{
 			Validators: []config.ValidatorFilter{},
 		},
 		Network: config.NetworkConfig{Clients: clients},
@@ -93,7 +93,7 @@ func TestNoMatchingJailedValidators(t *testing.T) {
 
 	clients := []string{ts.URL}
 	cfg := config.Config{
-		Filter: config.Filter{
+		Filters: config.Filters{
 			Validators: []config.ValidatorFilter{
 				config.ValidatorFilter{Operator: opAddr2.String()},
 			},
@@ -131,7 +131,7 @@ func TestMatchingJailedValidators(t *testing.T) {
 
 	clients := []string{ts.URL}
 	cfg := config.Config{
-		Filter: config.Filter{
+		Filters: config.Filters{
 			Validators: []config.ValidatorFilter{
 				config.ValidatorFilter{Operator: opAddr1.String()},
 			},

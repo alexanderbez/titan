@@ -70,7 +70,7 @@ func TestNoMatchingMissingSignatures(t *testing.T) {
 
 	clients := []string{ts.URL}
 	cfg := config.Config{
-		Filter: config.Filter{
+		Filters: config.Filters{
 			Validators: []config.ValidatorFilter{},
 		},
 		Network: config.NetworkConfig{Clients: clients},
@@ -110,7 +110,7 @@ func TestMatchingMissingSignatures(t *testing.T) {
 
 	clients := []string{ts.URL}
 	cfg := config.Config{
-		Filter: config.Filter{
+		Filters: config.Filters{
 			Validators: []config.ValidatorFilter{
 				config.ValidatorFilter{Address: pubKey2.Address().String()},
 			},
@@ -153,7 +153,7 @@ func TestNoDoubleSigners(t *testing.T) {
 
 	clients := []string{ts.URL}
 	cfg := config.Config{
-		Filter: config.Filter{
+		Filters: config.Filters{
 			Validators: []config.ValidatorFilter{},
 		},
 		Network: config.NetworkConfig{Clients: clients},
@@ -189,7 +189,7 @@ func TestNoMatchingDoubleSigners(t *testing.T) {
 
 	clients := []string{ts.URL}
 	cfg := config.Config{
-		Filter: config.Filter{
+		Filters: config.Filters{
 			Validators: []config.ValidatorFilter{
 				config.ValidatorFilter{Address: pubKey2.Address().String()},
 			},
@@ -226,7 +226,7 @@ func TestMatchingDoubleSigners(t *testing.T) {
 
 	clients := []string{ts.URL}
 	cfg := config.Config{
-		Filter: config.Filter{
+		Filters: config.Filters{
 			Validators: []config.ValidatorFilter{
 				config.ValidatorFilter{Address: pubKey1.Address().String()},
 			},

@@ -42,7 +42,7 @@ func newBaseStakingMonitor(logger core.Logger, cfg config.Config, name, memo str
 	return &baseStakingMonitor{
 		codec:  codec,
 		logger: logger,
-		filter: cfg.Filter.Validators,
+		filter: cfg.Filters.Validators,
 		cm:     core.NewClientManager(cfg.Network.Clients),
 		name:   name,
 		memo:   memo,

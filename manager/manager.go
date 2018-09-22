@@ -16,7 +16,6 @@ import (
 type Manager struct {
 	db       core.DB
 	logger   core.Logger
-	filter   []config.ValidatorFilter
 	monitors []monitor.Monitor
 	alerters []alerts.Alerter
 	ticker   *time.Ticker
@@ -29,7 +28,6 @@ func New(
 
 	return Manager{
 		db:       db,
-		filter:   cfg.Filter.Validators,
 		logger:   logger.With("module", "manager"),
 		monitors: monitors,
 		alerters: alerters,
