@@ -63,7 +63,7 @@ func (mngr Manager) poll() {
 		for _, alerter := range mngr.alerters {
 			ok, err := mngr.db.Has(core.BadgerAlertNamespace, id)
 			if !ok && err == nil {
-				if err := alerter.Alert(res, mon.Memo()); err != nil {
+				if err := alerter.Alert(res, mon.Memo()); err == nil {
 					if err := mngr.db.Set(core.BadgerAlertNamespace, id, res); err != nil {
 						mngr.logger.Debugf("failed to persist alert: %v", err)
 					}
