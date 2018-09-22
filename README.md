@@ -6,10 +6,10 @@
 
 A lightweight and simple Cosmos network validator monitoring and alerting tool.
 The primary goal of Titan is to trigger simple configurable alerts when monitored
-events occur. These events include global(non-validator) events such as new
+events occur. These events include global (non validator specific) events such as new
 governance proposals and governance proposals that have transitioned into a voting
-stage. In addition, Titan will track when a specific validator(s) misses blocks,
-changes in power, and gets slashed.
+phase. In addition, Titan will track when a specific validator(s) misses signing
+(pre-committing) a block, becomes jailed or double signs a block.
 
 Titan aims to be a minimal utility ran as a daemon alongside a validator. It uses
 [BadgerDB](https://github.com/dgraph-io/badger) as an embedded key/value store
@@ -17,28 +17,80 @@ and [SendGrid](https://sendgrid.com/) for alerting email and SMS messages.
 
 ## TODO
 
-- [ ] Implement unit tests...
 - [ ] Integrate simple RPC service to get certain metrics and metadata
 - [ ] Implement Makefile
-- [ ] Implement remaining monitor events
 - [ ] Integrate gometalinter and TravisCI config
-- [ ] Release!
 
 Nice-to-have down the line:
 
 - [ ] Allow more flexible alerting targets and filters
+- [ ] More granular monitoring of when validators miss a certain % of pre-commits/signatures
+- [ ] Monitor when a validator gets slashed
+  - NOTE: We can monitor when a validator decreases in power, but this would get
+  very noisy.
 
 ## Build & Usage
 
-TODO
+To build the binary, which will get all tools and vendor dependencies:
 
-### Example Configuration
+```shell
+$ make
+```
 
-TODO
+Titan has a simple CLI. To run the binary:
+
+```shell
+$ titan --config=path/to/config.toml --out=path/to/log/file --debug=true|false
+```
+
+See `$ titan --help` for further usage.
+
+Note: Titan by default looks for configuration in `$HOME/.titan/config.toml`.
+
+## Example Configuration
+
+See `config/template.go` for the full configuration template.
+
+```toml
+poll_interval = 15
+
+monitors = [
+  "new_proposals",
+  "active_proposals",
+  "jailed_validators",
+  "double_signing",
+  "missing_signatures"
+  # or can simple pass "*" to enable all monitors
+]
+
+[database]
+data_dir = "/path/to/.titan/data"
+
+[network]
+clients = ["https://your-LCD-client:1317"]
+
+[targets]
+sms_recipients = [+11234567890]
+email_recipients = ["foo@bar.com"]
+
+[filters]
+  [filters.validator]
+    operator = "cosmosaccaddr1rvm0em6w3qkzcwnzf9hkqvksujl895dfww4ecn"
+    address = "EBC613967F66F4EC306852CDF58B4F151CF16738"
+
+[integrations]
+  [integrations.sendgrid]
+    api_key = "your-API-key"
+    from_name = "Cosmos Titan"
+```
 
 ## Tests
 
-TODO
+To run unit tests and linting:
+
+```shell
+$ make test
+```
 
 ## Contributing
 
