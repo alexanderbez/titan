@@ -18,8 +18,6 @@ and [SendGrid](https://sendgrid.com/) for alerting email and SMS messages.
 ## TODO
 
 - [ ] Integrate simple RPC service to get certain metrics and metadata
-- [ ] Implement Makefile
-- [ ] Integrate gometalinter and TravisCI config
 
 Nice-to-have down the line:
 
