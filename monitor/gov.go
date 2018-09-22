@@ -17,6 +17,14 @@ var (
 	_ Monitor = (*GovVotingMonitor)(nil)
 )
 
+// Governance monitor alert related constants.
+const (
+	GovProposalMonitorMemo = "New Governance Proposals"
+	GovProposalMonitorName = "govProposal/new"
+	GovVotingMonitorMemo   = "New Active Governance Proposals"
+	GovVotingMonitorName   = "govProposal/voting"
+)
+
 const (
 	govProposalStatusNew    = "DepositPeriod"
 	govProposalStatusVoting = "VotingPeriod"

@@ -17,6 +17,12 @@ var (
 	_ Monitor = (*JailedValidatorMonitor)(nil)
 )
 
+// Staking monitor alert related constants.
+const (
+	JailedValidatorMonitorMemo = "New Jailed Validators"
+	JailedValidatorMonitorName = "staking/jailed"
+)
+
 type baseStakingMonitor struct {
 	codec  *wire.Codec
 	logger core.Logger
