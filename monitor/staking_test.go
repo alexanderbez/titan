@@ -17,19 +17,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func newStakingTestCodec() *wire.Codec {
+	codec := wire.NewCodec()
+	stake.RegisterWire(codec)
+	wire.RegisterCrypto(codec)
+
+	return codec
+}
+
 func newTestJailedValidatorMonitor(t *testing.T, cfg config.Config) *monitor.JailedValidatorMonitor {
 	logger, err := core.CreateBaseLogger("", false)
 	require.NoError(t, err)
 
 	return monitor.NewJailedValidatorMonitor(
-		logger, cfg, "staking/jailed", "New Jailed Validators",
+		logger, cfg, monitor.JailedValidatorMonitorName, monitor.JailedValidatorMonitorMemo,
 	)
 }
 
 func TestNoJailedValidators(t *testing.T) {
-	codec := wire.NewCodec()
-	stake.RegisterWire(codec)
-	wire.RegisterCrypto(codec)
+	codec := newStakingTestCodec()
 
 	opAddr1, err := sdk.AccAddressFromBech32("cosmosaccaddr1chchjxgackcqkn9fqgpsc4n9xamx4flgndapzg")
 	require.NoError(t, err)
@@ -64,9 +70,7 @@ func TestNoJailedValidators(t *testing.T) {
 }
 
 func TestNoMatchingJailedValidators(t *testing.T) {
-	codec := wire.NewCodec()
-	stake.RegisterWire(codec)
-	wire.RegisterCrypto(codec)
+	codec := newStakingTestCodec()
 
 	opAddr1, err := sdk.AccAddressFromBech32("cosmosaccaddr1chchjxgackcqkn9fqgpsc4n9xamx4flgndapzg")
 	require.NoError(t, err)
@@ -106,9 +110,7 @@ func TestNoMatchingJailedValidators(t *testing.T) {
 }
 
 func TestMatchingJailedValidators(t *testing.T) {
-	codec := wire.NewCodec()
-	stake.RegisterWire(codec)
-	wire.RegisterCrypto(codec)
+	codec := newStakingTestCodec()
 
 	opAddr1, err := sdk.AccAddressFromBech32("cosmosaccaddr1chchjxgackcqkn9fqgpsc4n9xamx4flgndapzg")
 	require.NoError(t, err)

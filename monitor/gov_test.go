@@ -15,6 +15,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 )
 
+func newGovTestCodec() *wire.Codec {
+	codec := wire.NewCodec()
+	gov.RegisterWire(codec)
+
+	return codec
+}
+
 func newTestGovProposalMonitor(t *testing.T, ts *httptest.Server) *monitor.GovProposalMonitor {
 	logger, err := core.CreateBaseLogger("", false)
 	require.NoError(t, err)
@@ -23,7 +30,7 @@ func newTestGovProposalMonitor(t *testing.T, ts *httptest.Server) *monitor.GovPr
 	cfg := config.Config{Network: config.NetworkConfig{Clients: clients}}
 
 	return monitor.NewGovProposalMonitor(
-		logger, cfg, "govProposal/new", "New Governance Proposals",
+		logger, cfg, monitor.GovProposalMonitorName, monitor.GovProposalMonitorMemo,
 	)
 }
 
@@ -35,13 +42,12 @@ func newTestGovVotingMonitor(t *testing.T, ts *httptest.Server) *monitor.GovVoti
 	cfg := config.Config{Network: config.NetworkConfig{Clients: clients}}
 
 	return monitor.NewGovVotingMonitor(
-		logger, cfg, "govProposal/voting", "New Active Governance Proposals",
+		logger, cfg, monitor.GovVotingMonitorName, monitor.GovVotingMonitorMemo,
 	)
 }
 
 func TestEmptyProposals(t *testing.T) {
-	codec := wire.NewCodec()
-	gov.RegisterWire(codec)
+	codec := newGovTestCodec()
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var proposals []gov.Proposal
@@ -63,8 +69,7 @@ func TestEmptyProposals(t *testing.T) {
 }
 
 func TestNewProposals(t *testing.T) {
-	codec := wire.NewCodec()
-	gov.RegisterWire(codec)
+	codec := newGovTestCodec()
 
 	proposals := []gov.Proposal{
 		&gov.TextProposal{
@@ -103,8 +108,7 @@ func TestNewProposals(t *testing.T) {
 }
 
 func TestEmptyActiveProposals(t *testing.T) {
-	codec := wire.NewCodec()
-	gov.RegisterWire(codec)
+	codec := newGovTestCodec()
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var proposals []gov.Proposal
@@ -126,8 +130,7 @@ func TestEmptyActiveProposals(t *testing.T) {
 }
 
 func TestNewActiveProposals(t *testing.T) {
-	codec := wire.NewCodec()
-	gov.RegisterWire(codec)
+	codec := newGovTestCodec()
 
 	proposals := []gov.Proposal{
 		&gov.TextProposal{

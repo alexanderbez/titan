@@ -30,7 +30,7 @@ func newTestDoubleSignMonitor(t *testing.T, cfg config.Config) *monitor.DoubleSi
 	require.NoError(t, err)
 
 	return monitor.NewDoubleSignMonitor(
-		logger, cfg, "slashing/doubleSign", monitor.SlashingMonitorMemo,
+		logger, cfg, monitor.DoubleSignMonitorName, monitor.DoubleSignMonitorMemo,
 	)
 }
 
