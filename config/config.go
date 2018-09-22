@@ -7,15 +7,38 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 )
 
+// Valid monitor configuration value constants.
+const (
+	MonitorAll               = "*"
+	MonitorNewProposals      = "new_proposals"
+	MonitorActiveProposals   = "active_proposals"
+	MonitorJailedValidators  = "jailed_validators"
+	MonitorDoubleSigning     = "double_signing"
+	MonitorMissingSignatures = "missing_signatures"
+)
+
+var (
+	structValidate = validator.New()
+	validValues    = map[string]struct{}{
+		MonitorAll:               struct{}{},
+		MonitorNewProposals:      struct{}{},
+		MonitorActiveProposals:   struct{}{},
+		MonitorJailedValidators:  struct{}{},
+		MonitorDoubleSigning:     struct{}{},
+		MonitorMissingSignatures: struct{}{},
+	}
+)
+
 type (
 	// Config defines the application's configuration structure.
 	Config struct {
-		PollInterval uint          `mapstructure:"poll_interval" validate:"gt=10,required"`
+		PollInterval uint          `mapstructure:"poll_interval" validate:"required,gt=10"`
+		Monitors     []string      `mapstructure:"monitors" validate:"required,validmonitor"`
+		Database     Database      `mapstructure:"database" validate:"required,dive"`
 		Targets      Targets       `mapstructure:"targets" validate:"required,dive"`
-		Filter       Filter        `mapstructure:"filter" validate:"required,dive"`
+		Filters      Filters       `mapstructure:"filters" validate:"required,dive"`
 		Network      NetworkConfig `mapstructure:"network" validate:"required,dive"`
 		Integrations Integrations  `mapstructure:"integrations" validate:"required,dive"`
-		Database     Database      `mapstructure:"database" validate:"required,dive"`
 	}
 
 	// Database defines embedded database configuration.
@@ -35,9 +58,9 @@ type (
 		EmailRecipients []string `mapstructure:"email_recipients" validate:"dive,email"`
 	}
 
-	// Filter defines a set of validator address filters to match against when
+	// Filters defines a set of validator address filters to match against when
 	// monitoring and alerting.
-	Filter struct {
+	Filters struct {
 		Validators []ValidatorFilter `mapstructure:"validator" validate:"required,dive"`
 	}
 
@@ -60,11 +83,35 @@ type (
 	}
 )
 
+func init() {
+	structValidate.RegisterValidation("validmonitor", validateMonitor)
+}
+
+// validateMonitor implements the validator.Func interface. It validates if a
+// valid series of monitor values were given.
+func validateMonitor(fl validator.FieldLevel) bool {
+	values := fl.Field().Interface().([]string)
+	if len(values) == 0 {
+		return false
+	}
+
+	for _, monitor := range values {
+		if monitor == MonitorAll && len(values) > 1 {
+			// cannot specify all and specific monitor values
+			return false
+		}
+
+		if _, ok := validValues[monitor]; !ok {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Validate performs basic validation of parsed application configuration. If
 // any validation fails, an error is immediately returned.
 func (cfg Config) Validate() error {
-	structValidate := validator.New()
-
 	if err := structValidate.Struct(cfg); err != nil {
 		return newConfigErr(err)
 	} else if len(cfg.Targets.EmailRecipients) == 0 &&
