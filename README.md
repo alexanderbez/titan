@@ -15,11 +15,7 @@ Titan aims to be a minimal utility ran as a daemon alongside a validator. It use
 [BadgerDB](https://github.com/dgraph-io/badger) as an embedded key/value store
 and [SendGrid](https://sendgrid.com/) for alerting email and SMS messages.
 
-## TODO
-
-- [ ] Integrate simple RPC service to get certain metrics and metadata
-
-Nice-to-have down the line:
+Nice-to-have features down the line:
 
 - [ ] Allow more flexible alerting targets and filters
 - [ ] More granular monitoring of when validators miss a certain % of pre-commits/signatures
@@ -49,6 +45,12 @@ Note:
 - Titan operates through a series of provided LCD clients. More than a single
   client should be provided and each client should be up-to-date and trusted.
 
+## API
+
+Titan also exposes a very simple JSON REST service exposing information on the
+latest monitor execution. This service is exposed on `listen_addr` and has a single
+endpoint of: `executions/latest`.
+
 ## Example Configuration
 
 See `config/template.go` for the full configuration template.
@@ -62,14 +64,18 @@ monitors = [
   "jailed_validators",
   "double_signing",
   "missing_signatures"
-  # or can simple pass "*" to enable all monitors
+  # or you can simply pass "*" to enable all monitors
 ]
 
 [database]
 data_dir = "/path/to/.titan/data"
 
 [network]
-clients = ["https://your-LCD-client:1317"]
+# Address to run JSON REST service
+listen_addr = "tcp://0.0.0.0:36655"
+
+# NOTE: These will be used in a round-robin fashion
+clients = ["https://gaia-seeds.interblock.io:1317"]
 
 [targets]
 sms_recipients = [+11234567890]
