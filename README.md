@@ -15,6 +15,10 @@ Titan aims to be a minimal utility ran as a daemon alongside a validator. It use
 [BadgerDB](https://github.com/dgraph-io/badger) as an embedded key/value store
 and [SendGrid](https://sendgrid.com/) for alerting email and SMS messages.
 
+The latest release of Titan currently operates and supports `v0.24.2` of the
+[Cosmos SDK](https://github.com/cosmos/cosmos-sdk/) and the
+[gaia-8001](https://github.com/cosmos/testnets/tree/master/gaia-8001) testnet.
+
 Nice-to-have features down the line:
 
 - [ ] Allow more flexible alerting targets and filters
