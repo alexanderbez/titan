@@ -15,6 +15,7 @@ var _ Alerter = (*SendGridAlerter)(nil)
 // SendGridAlerter implements an Alerter interface via the SendGrid API. It is
 // responsible for sending alerts to given recipient email and SMS addresses.
 type SendGridAlerter struct {
+	name        string
 	fromAddress string
 	fromName    string
 	client      *sendgrid.Client
@@ -25,12 +26,18 @@ type SendGridAlerter struct {
 // NewSendGridAlerter returns a new SendGridAlerter.
 func NewSendGridAlerter(logger core.Logger, apiKey, fromName string, recipients []string) SendGridAlerter {
 	return SendGridAlerter{
+		name:        "SendGrid",
 		fromName:    fromName,
 		fromAddress: "titan@sendgrid.net",
 		client:      sendgrid.NewSendClient(apiKey),
 		logger:      logger,
 		recipients:  recipients,
 	}
+}
+
+// Name implements the Alerter interface. It returns the name of the alerter.
+func (sga SendGridAlerter) Name() string {
+	return sga.name
 }
 
 // Alert implements the Alerter interface. It will send an email (or SMS message)

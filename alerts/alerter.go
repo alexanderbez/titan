@@ -8,6 +8,7 @@ import (
 // Alerter is an interface that defines a generic alerting hook.
 type Alerter interface {
 	Alert(payload []byte, memo string) error
+	Name() string
 }
 
 // CreateAlerters creates the core series of alerting components used to alert
