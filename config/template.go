@@ -22,10 +22,11 @@ monitors = [
 [database]
 data_dir = "/Users/aleksbez/.titan/data"
 
-# A list of trusted LCD endpoints
-#
-# NOTE: This will be used in a round-robin fashion
+# Network configuration including a list of trusted LCD endpoints
 [network]
+listen_addr = "tcp://0.0.0.0:36655"
+
+# NOTE: These will be used in a round-robin fashion
 clients = ["https://gaia-seeds.interblock.io:1317"]
 
 # List of alerting targets

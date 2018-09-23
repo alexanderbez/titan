@@ -48,7 +48,8 @@ type (
 
 	// NetworkConfig defines network related configuration.
 	NetworkConfig struct {
-		Clients []string `mapstructure:"clients" validate:"dive,url"`
+		ListenAddr string   `mapstructure:"listen_addr" validate:"required,tcp_addr"`
+		Clients    []string `mapstructure:"clients" validate:"gt=0,dive,url"`
 	}
 
 	// Targets defines alerting targets.

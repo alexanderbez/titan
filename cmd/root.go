@@ -12,6 +12,7 @@ import (
 	"github.com/alexanderbez/titan/core"
 	"github.com/alexanderbez/titan/manager"
 	"github.com/alexanderbez/titan/monitor"
+	"github.com/alexanderbez/titan/server"
 	"github.com/alexanderbez/titan/version"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -89,8 +90,6 @@ func executeRootCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// TODO: RPC service
-
 	baseLogger, err := core.CreateBaseLogger(viper.GetString(flagLogOut), viper.GetBool(flagDebug))
 	if err != nil {
 		return err
@@ -104,6 +103,11 @@ func executeRootCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	srvr, err := server.CreateServer(cfg, db, baseLogger)
+	if err != nil {
+		return err
+	}
+
 	mngr := manager.New(baseLogger, db, cfg, monitors, alerters)
 
 	baseLogger.Info("starting Titan!")
@@ -113,8 +117,8 @@ func executeRootCmd(cmd *cobra.Command, args []string) error {
 
 	handleSigs(done)
 	<-done
-	db.Close()
-	baseLogger.Info("exiting...")
+	baseLogger.Info("cleaning up and exiting...")
+	cleanup(db, srvr)
 
 	return nil
 }
@@ -125,6 +129,11 @@ func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}
+}
+
+func cleanup(db core.DB, srvr *server.Server) {
+	db.Close()
+	srvr.Close()
 }
 
 func handleSigs(done chan<- bool) {

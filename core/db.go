@@ -23,7 +23,8 @@ const (
 
 // Badger namespaces
 var (
-	BadgerAlertsNamespace = []byte("alerts")
+	BadgerAlertsNamespace   = []byte("alerts")
+	BadgerMonitorsNamespace = []byte("monitors")
 )
 
 type (

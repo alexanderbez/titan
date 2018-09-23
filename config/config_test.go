@@ -25,7 +25,8 @@ func newTestValidConfig() config.Config {
 			},
 		},
 		Network: config.NetworkConfig{
-			Clients: []string{"https://test-seeds.com:1317"},
+			ListenAddr: "0.0.0.0:36655",
+			Clients:    []string{"https://test-seeds.com:1317"},
 		},
 		Integrations: config.Integrations{
 			SendGrid: config.SendGridAPI{
@@ -70,6 +71,20 @@ func TestInvalidMonitors(t *testing.T) {
 	require.Error(t, err)
 
 	cfg.Monitors = []string{"invalid_monitor", "new_proposals"}
+	err = cfg.Validate()
+	require.Error(t, err)
+}
+
+func TestInvalidNetwork(t *testing.T) {
+	cfg := newTestValidConfig()
+
+	cfg.Network.ListenAddr = ""
+	err := cfg.Validate()
+	require.Error(t, err)
+
+	cfg = newTestValidConfig()
+
+	cfg.Network.Clients = []string{}
 	err = cfg.Validate()
 	require.Error(t, err)
 }
