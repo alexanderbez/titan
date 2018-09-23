@@ -6,7 +6,7 @@ import (
 )
 
 // Version defines the current application semantic version.
-const Version = "0.0.1"
+const Version = "0.0.2"
 
 // GitCommit defines the application's Git short SHA-1 revision set during the
 // build.
