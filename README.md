@@ -76,7 +76,7 @@ data_dir = "/path/to/.titan/data"
 
 [network]
 # Address to run JSON REST service
-listen_addr = "tcp://0.0.0.0:36655"
+listen_addr = "0.0.0.0:36655"
 
 # NOTE: These will be used in a round-robin fashion
 clients = ["https://gaia-seeds.interblock.io:1317"]
