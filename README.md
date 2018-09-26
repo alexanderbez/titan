@@ -82,7 +82,7 @@ listen_addr = "tcp://0.0.0.0:36655"
 clients = ["https://gaia-seeds.interblock.io:1317"]
 
 [targets]
-sms_recipients = [+11234567890]
+sms_recipients = ["+11234567890"]
 email_recipients = ["foo@bar.com"]
 
 [filters]
